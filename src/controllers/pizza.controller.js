@@ -1,16 +1,13 @@
-import { db } from '../config/connection-db.js'
+import { PizzaModel } from '../models/pizza.model.js'
 
 export const getPizzas = async (req, res) => {
-  const pizzas = await db.any('SELECT * FROM pizzas ORDER BY piz_id DESC')
+  const pizzas = await PizzaModel.getAll()
   res.json(pizzas)
 }
 
 export const getPizzaById = async (req, res) => {
   const { id } = req.params
-  const pizza = await db.oneOrNone(`
-    SELECT * FROM pizzas 
-    WHERE piz_id = $1`, [id]
-  )
+  const pizza = await PizzaModel.getById(id)
 
   if (!pizza) {
     return res.status(404).json({ message: 'Pizza not found' })
@@ -21,18 +18,7 @@ export const getPizzaById = async (req, res) => {
 
 export const createPizza = async (req, res) => {
   try {
-    const {
-      piz_name: pizName,
-      piz_origin: pizOrigin,
-      piz_state: pizState
-    } = req.body
-
-    const newPizza = await db.one(`
-    INSERT INTO pizzas (piz_name, piz_origin, piz_state)
-    VALUES ($1, $2, $3)
-    RETURNING *`, [pizName, pizOrigin, pizState]
-    )
-
+    const newPizza = await PizzaModel.create(req.body)
     res.status(201).json(newPizza)
   } catch (error) {
     console.log(error)
@@ -43,18 +29,8 @@ export const createPizza = async (req, res) => {
 export const updatePizza = async (req, res) => {
   try {
     const { id } = req.params
-    const {
-      piz_name: pizName,
-      piz_origin: pizOrigin,
-      piz_state: pizState
-    } = req.body
 
-    const updatedPizza = await db.oneOrNone(`
-    UPDATE pizzas 
-    SET piz_name = $1, piz_origin = $2, piz_state = $3
-    WHERE piz_id = $4
-    RETURNING *`, [pizName, pizOrigin, pizState, id]
-    )
+    const updatedPizza = await PizzaModel.update(id, req.body)
 
     if (!updatedPizza) {
       return res.status(404).json({ message: 'Pizza not found' })
@@ -70,14 +46,22 @@ export const updatePizza = async (req, res) => {
 export const deletePizza = async (req, res) => {
   const { id } = req.params
 
-  const { rowCount } = await db.result(`
-    DELETE FROM pizzas 
-    WHERE piz_id = $1`, [id]
-  )
+  const { rowCount } = await PizzaModel.delete(id)
 
   if (rowCount === 0) {
     return res.status(404).json({ message: 'Pizza not found' })
   }
 
   res.sendStatus(204)
+}
+
+export const getPizzaIngredients = async (req, res) => {
+  const { id } = req.params
+  const pizzaIngredients = await PizzaModel.getPizzaIngredients(id)
+
+  if (pizzaIngredients.length === 0) {
+    return res.status(404).json({ message: 'Pizza not found or has no ingredients' })
+  }
+
+  res.json(pizzaIngredients)
 }
