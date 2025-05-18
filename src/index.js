@@ -1,6 +1,7 @@
 import express from 'express'
 import { pizzasRouter } from './routes/pizza.routes.js'
 import { ingredientsRouter } from './routes/ingredient.routes.js'
+import { PORT } from './config.js'
 
 const app = express()
 
@@ -13,6 +14,6 @@ app.use((req, res, next) => {
   res.status(404).json({ message: 'Endpoint not found' })
 })
 
-app.listen(3000, () => {
-  console.log('Server running in http://localhost:3000')
+app.listen(PORT, () => {
+  console.log(`Server running in localhost:${PORT}`)
 })
