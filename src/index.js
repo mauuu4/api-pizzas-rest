@@ -1,7 +1,7 @@
 import express from 'express'
 import { pizzasRouter } from './routes/pizza.routes.js'
 import { ingredientsRouter } from './routes/ingredient.routes.js'
-import { PORT } from './config.js'
+import { PORT } from './config/config.js'
 
 const app = express()
 

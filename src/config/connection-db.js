@@ -1,5 +1,5 @@
 import pgPromise from 'pg-promise'
-import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from '../config.js'
+import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config.js'
 
 const config = {
   host: DB_HOST,
