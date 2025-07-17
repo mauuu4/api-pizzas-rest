@@ -1,67 +1,105 @@
-import { PizzaModel } from '../models/pizza.model.js'
+import { PizzaService } from '../services/pizza.service.js'
 
 export const getPizzas = async (req, res) => {
-  const pizzas = await PizzaModel.getAll()
-  res.json(pizzas)
+  try {
+    const pizzas = await PizzaService.getAll()
+    res.json(pizzas)
+  } catch (error) {
+    console.error('Error getting pizzas:', error)
+    res.status(500).json({ message: 'Error retrieving pizzas' })
+  }
 }
 
 export const getPizzaById = async (req, res) => {
-  const { id } = req.params
-  const pizza = await PizzaModel.getById(id)
+  try {
+    const pizza = await PizzaService.getById(req.params.id)
 
-  if (!pizza) {
-    return res.status(404).json({ message: 'Pizza not found' })
+    if (!pizza) {
+      return res.status(404).json({ message: 'Pizza not found' })
+    }
+
+    res.json(pizza)
+  } catch (error) {
+    console.error('Error getting pizza:', error)
+    res.status(500).json({ message: 'Error retrieving pizza' })
   }
-
-  res.json(pizza)
 }
 
 export const createPizza = async (req, res) => {
   try {
-    const newPizza = await PizzaModel.create(req.body)
-    res.status(201).json(newPizza)
+    const pizza = await PizzaService.create(req.body)
+    res.status(201).json(pizza)
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({ message: 'Error creating pizza' })
+    console.error('Error creating pizza:', error)
+    
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'Pizza name already exists' })
+    }
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error',
+        errors: error.errors.map(err => err.message)
+      })
+    }
+
+    res.status(500).json({ message: 'Error creating pizza' })
   }
 }
 
 export const updatePizza = async (req, res) => {
   try {
-    const { id } = req.params
+    const pizza = await PizzaService.update(req.params.id, req.body)
 
-    const updatedPizza = await PizzaModel.update(id, req.body)
-
-    if (!updatedPizza) {
+    if (!pizza) {
       return res.status(404).json({ message: 'Pizza not found' })
     }
 
-    res.json(updatedPizza)
+    res.json(pizza)
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({ message: 'Error updating pizza' })
+    console.error('Error updating pizza:', error)
+    
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'Pizza name already exists' })
+    }
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error',
+        errors: error.errors.map(err => err.message)
+      })
+    }
+
+    res.status(500).json({ message: 'Error updating pizza' })
   }
 }
 
 export const deletePizza = async (req, res) => {
-  const { id } = req.params
+  try {
+    const deleted = await PizzaService.delete(req.params.id)
+    
+    if (!deleted) {
+      return res.status(404).json({ message: 'Pizza not found' })
+    }
 
-  const { rowCount } = await PizzaModel.delete(id)
-
-  if (rowCount === 0) {
-    return res.status(404).json({ message: 'Pizza not found' })
+    res.status(204).send()
+  } catch (error) {
+    console.error('Error deleting pizza:', error)
+    res.status(500).json({ message: 'Error deleting pizza' })
   }
-
-  res.sendStatus(204)
 }
 
 export const getPizzaIngredients = async (req, res) => {
-  const { id } = req.params
-  const pizzaIngredients = await PizzaModel.getPizzaIngredients(id)
+  try {
+    const result = await PizzaService.getIngredients(req.params.id)
 
-  if (pizzaIngredients.length === 0) {
-    return res.status(404).json({ message: 'Pizza not found or has no ingredients' })
+    if (!result) {
+      return res.status(404).json({ message: 'Pizza not found' })
+    }
+
+    res.json(result)
+  } catch (error) {
+    console.error('Error getting pizza ingredients:', error)
+    res.status(500).json({ message: 'Error retrieving pizza ingredients' })
   }
-
-  res.json(pizzaIngredients)
 }

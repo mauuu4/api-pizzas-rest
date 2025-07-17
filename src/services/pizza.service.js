@@ -1,0 +1,157 @@
+import { Pizza, Ingredient, PizzaIngredient } from '../models/index.js'
+
+export class PizzaService {
+  static async getAll() {
+    return await Pizza.findAll({
+      order: [['piz_id', 'DESC']],
+      include: [{
+        model: Ingredient,
+        as: 'ingredients',
+        through: { 
+          attributes: ['ing_quantity'],
+          as: 'pizzaIngredient'
+        },
+        required: false
+      }]
+    })
+  }
+
+  static async getById(id) {
+    return await Pizza.findByPk(id, {
+      include: [{
+        model: Ingredient,
+        as: 'ingredients',
+        through: { 
+          attributes: ['ing_quantity'],
+          as: 'pizzaIngredient'
+        },
+        required: false
+      }]
+    })
+  }
+ 
+  static async create(data) {
+    const { piz_name, piz_origin, piz_state = true, ingredients = [] } = data
+
+    // Crear pizza
+    const pizza = await Pizza.create({
+      piz_name,
+      piz_origin,
+      piz_state
+    })
+
+    // Añadir ingredientes si se proporcionan
+    if (ingredients.length > 0) {
+      // Validar que todos los ingredientes existen
+      const ingredientIds = ingredients.map(ing => 
+        typeof ing === 'object' ? ing.ing_id : ing
+      )
+      
+      const existingIngredients = await Ingredient.findAll({
+        where: {
+          ing_id: ingredientIds
+        }
+      })
+
+      if (existingIngredients.length !== ingredientIds.length) {
+        await pizza.destroy()
+        throw new Error('Some ingredients do not exist')
+      }
+
+      // Crear las relaciones con cantidades
+      const pizzaIngredients = ingredients.map(ing => {
+        if (typeof ing === 'object') {
+          return {
+            piz_id: pizza.piz_id,
+            ing_id: ing.ing_id,
+            ing_quantity: ing.ing_quantity || 1
+          }
+        } else {
+          return {
+            piz_id: pizza.piz_id,
+            ing_id: ing,
+            ing_quantity: 1
+          }
+        }
+      })
+
+      await PizzaIngredient.bulkCreate(pizzaIngredients)
+    }
+
+    // Retornar pizza con ingredientes
+    return await this.getById(pizza.piz_id)
+  }
+
+  static async update(id, data) {
+    const pizza = await Pizza.findByPk(id)
+    
+    if (!pizza) {
+      return null
+    }
+
+    const { piz_name, piz_origin, piz_state, ingredients } = data
+
+    // Actualizar campos de la pizza
+    await pizza.update({
+      piz_name: piz_name || pizza.piz_name,
+      piz_origin: piz_origin || pizza.piz_origin,
+      piz_state: piz_state !== undefined ? piz_state : pizza.piz_state
+    })
+
+    // Actualizar ingredientes si se proporcionan
+    if (ingredients && Array.isArray(ingredients)) {
+      // Eliminar relaciones existentes
+      await PizzaIngredient.destroy({
+        where: { piz_id: id }
+      })
+
+      // Añadir nuevas relaciones
+      if (ingredients.length > 0) {
+        const ingredientIds = ingredients.map(ing => 
+          typeof ing === 'object' ? ing.ing_id : ing
+        )
+        
+        const existingIngredients = await Ingredient.findAll({
+          where: {
+            ing_id: ingredientIds
+          }
+        })
+
+        if (existingIngredients.length !== ingredientIds.length) {
+          throw new Error('Some ingredients do not exist')
+        }
+
+        const pizzaIngredients = ingredients.map(ing => {
+          if (typeof ing === 'object') {
+            return {
+              piz_id: id,
+              ing_id: ing.ing_id,
+              ing_quantity: ing.ing_quantity || 1
+            }
+          } else {
+            return {
+              piz_id: id,
+              ing_id: ing,
+              ing_quantity: 1
+            }
+          }
+        })
+
+        await PizzaIngredient.bulkCreate(pizzaIngredients)
+      }
+    }
+
+    return await this.getById(id)
+  }
+
+  static async delete(id) {
+    const pizza = await Pizza.findByPk(id)
+    
+    if (!pizza) {
+      return false
+    }
+
+    await pizza.destroy()
+    return true
+  }
+}

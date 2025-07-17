@@ -1,74 +1,92 @@
-import { db } from '../config/connection-db.js'
+import { DataTypes } from 'sequelize'
+import { sequelize } from '../config/connection-db.js'
 
-export class PizzaModel {
-  static async getAll () {
-    const pizzas = await db.any('SELECT * FROM pizzas ORDER BY piz_id DESC')
-    return pizzas
+export const Pizza = sequelize.define('Pizza', {
+  piz_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    field: 'piz_id'
+  },
+  piz_name: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    field: 'piz_name',
+    validate: {
+      notEmpty: {
+        msg: 'Pizza name cannot be empty'
+      },
+      len: {
+        args: [2, 100],
+        msg: 'Pizza name must be between 2 and 100 characters'
+      }
+    }
+  },
+  piz_origin: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    field: 'piz_origin',
+    validate: {
+      notEmpty: {
+        msg: 'Pizza origin cannot be empty'
+      },
+      len: {
+        args: [2, 100],
+        msg: 'Pizza origin must be between 2 and 100 characters'
+      }
+    }
+  },
+  piz_state: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true,
+    field: 'piz_state'
   }
+}, {
+  tableName: 'pizzas',
+  timestamps: false,
+  indexes: [
+    {
+      fields: ['piz_name']
+    },
+    {
+      fields: ['piz_state']
+    }
+  ]
+})
 
-  static async getById (id) {
-    const pizza = await db.oneOrNone('SELECT * FROM pizzas WHERE piz_id = $1', [id])
-    return pizza
+// Definir la tabla intermedia para la relación muchos a muchos
+export const PizzaIngredient = sequelize.define('PizzaIngredient', {
+  piz_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    field: 'piz_id'
+  },
+  ing_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    field: 'ing_id'
+  },
+  ing_quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'ing_quantity',
+    validate: {
+      min: {
+        args: [1],
+        msg: 'Quantity must be at least 1'
+      }
+    }
   }
-
-  static async create (input) {
-    const {
-      piz_name: pizName,
-      piz_origin: pizOrigin,
-      piz_state: pizState
-    } = input
-
-    const newPizza = await db.one(
-      'INSERT INTO pizzas (piz_name, piz_origin, piz_state) VALUES ($1, $2, $3) RETURNING *',
-      [pizName, pizOrigin, pizState]
-    )
-
-    return newPizza
-  }
-
-  static async update (id, input) {
-    const {
-      piz_name: pizName,
-      piz_origin: pizOrigin,
-      piz_state: pizState
-    } = input
-
-    const updatedPizza = await db.oneOrNone(
-      'UPDATE pizzas SET piz_name = $1, piz_origin = $2, piz_state = $3 WHERE piz_id = $4 RETURNING *',
-      [pizName, pizOrigin, pizState, id]
-    )
-
-    return updatedPizza
-  }
-
-  static async delete (id) {
-    const result = await db.result('DELETE FROM pizzas WHERE piz_id = $1', [id])
-    return result
-  }
-
-  static async getPizzaIngredients (id) {
-    const pizzaIngredients = await db.any(`
-        SELECT i.ing_id, i.ing_name, i.ing_calories, i.ing_state
-        FROM pizza_ingredient pi
-        JOIN ingredients i ON pi.ing_id = i.ing_id
-        WHERE piz_id = $1`, [id]
-    )
-    return pizzaIngredients
-  }
-
-  static async addIngredient (id, ingredientId) {
-    const result = await db.one(
-      'INSERT INTO pizza_ingredient (piz_id, ing_id) VALUES ($1, $2) RETURNING *',
-      [id, ingredientId]
-    )
-    return result
-  }
-
-  static async removeIngredient (id, ingredientId) {
-    const result = await db.result(
-      'DELETE FROM pizza_ingredient WHERE piz_id = $1 AND ing_id = $2',
-      [id, ingredientId]
-    )
-    return result
-  }
-}
+}, {
+  tableName: 'pizza_ingredient',
+  timestamps: false,
+  indexes: [
+    {
+      fields: ['piz_id']
+    },
+    {
+      fields: ['ing_id']
+    }
+  ]
+})
