@@ -13,12 +13,11 @@
   "license": "ISC",
   "description": "API que gestiona pizzas",
   "dependencies": {
-    "dotenv": "^16.5.0",
+    "dotenv": "^17.2.0",
     "express": "5.1.0",
-    "nodemon": "^3.1.10",
-    "sequelize": "^6.37.1",
-    "pg": "^8.11.3",
-    "pg-hstore": "^2.3.4"
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "standard": "^17.1.2"
