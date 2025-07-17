@@ -31,13 +31,13 @@ export const createPizza = async (req, res) => {
     res.status(201).json(pizza)
   } catch (error) {
     console.error('Error creating pizza:', error)
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ message: 'Pizza name already exists' })
     }
-    
+
     if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation error',
         errors: error.errors.map(err => err.message)
       })
@@ -58,13 +58,13 @@ export const updatePizza = async (req, res) => {
     res.json(pizza)
   } catch (error) {
     console.error('Error updating pizza:', error)
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ message: 'Pizza name already exists' })
     }
-    
+
     if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation error',
         errors: error.errors.map(err => err.message)
       })
@@ -77,7 +77,7 @@ export const updatePizza = async (req, res) => {
 export const deletePizza = async (req, res) => {
   try {
     const deleted = await PizzaService.delete(req.params.id)
-    
+
     if (!deleted) {
       return res.status(404).json({ message: 'Pizza not found' })
     }

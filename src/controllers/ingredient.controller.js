@@ -31,13 +31,13 @@ export const createIngredient = async (req, res) => {
     res.status(201).json(ingredient)
   } catch (error) {
     console.error('Error creating ingredient:', error)
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ message: 'Ingredient name already exists' })
     }
-    
+
     if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation error',
         errors: error.errors.map(err => err.message)
       })
@@ -58,13 +58,13 @@ export const updateIngredient = async (req, res) => {
     res.json(ingredient)
   } catch (error) {
     console.error('Error updating ingredient:', error)
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({ message: 'Ingredient name already exists' })
     }
-    
+
     if (error.name === 'SequelizeValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Validation error',
         errors: error.errors.map(err => err.message)
       })
@@ -77,7 +77,7 @@ export const updateIngredient = async (req, res) => {
 export const deleteIngredient = async (req, res) => {
   try {
     const deleted = await IngredientService.delete(req.params.id)
-    
+
     if (!deleted) {
       return res.status(404).json({ message: 'Ingredient not found' })
     }
@@ -86,5 +86,20 @@ export const deleteIngredient = async (req, res) => {
   } catch (error) {
     console.error('Error deleting ingredient:', error)
     res.status(500).json({ message: 'Error deleting ingredient' })
+  }
+}
+
+export const getIngredientPizzas = async (req, res) => {
+  try {
+    const result = await IngredientService.getPizzas(req.params.id)
+
+    if (!result) {
+      return res.status(404).json({ message: 'Ingredient not found' })
+    }
+
+    res.json(result)
+  } catch (error) {
+    console.error('Error getting ingredient pizzas:', error)
+    res.status(500).json({ message: 'Error retrieving ingredient pizzas' })
   }
 }

@@ -1,7 +1,6 @@
 import { Sequelize } from 'sequelize'
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config.js'
 
-// Configuración de Sequelize
 const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
   port: DB_PORT,
@@ -14,12 +13,11 @@ const sequelize = new Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
   }
 })
 
-// Función para conectar a la base de datos
 export const connectDB = async () => {
   try {
     await sequelize.authenticate()
     console.log('✅ Database connected successfully')
-    
+
     await sequelize.sync({ alter: false })
     console.log('✅ Database synchronized')
   } catch (error) {

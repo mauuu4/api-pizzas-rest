@@ -1,18 +1,20 @@
 import { Router } from 'express'
-import { 
-  getIngredients, 
-  getIngredientById, 
-  createIngredient, 
-  updateIngredient, 
-  deleteIngredient
+import {
+  getIngredients,
+  getIngredientById,
+  createIngredient,
+  updateIngredient,
+  deleteIngredient,
+  getIngredientPizzas
 } from '../controllers/ingredient.controller.js'
-import { validateId } from '../middlewares/validation.js'
+import { validateId, validateBody, ingredientSchemas } from '../middlewares/validation.js'
 
 export const ingredientsRouter = Router()
 
-// Rutas de ingredientes
 ingredientsRouter.get('/', getIngredients)
 ingredientsRouter.get('/:id', validateId, getIngredientById)
-ingredientsRouter.post('/', createIngredient)
-ingredientsRouter.put('/:id', validateId, updateIngredient)
+ingredientsRouter.post('/', validateBody(ingredientSchemas.create), createIngredient)
+ingredientsRouter.put('/:id', validateId, validateBody(ingredientSchemas.update), updateIngredient)
 ingredientsRouter.delete('/:id', validateId, deleteIngredient)
+
+ingredientsRouter.get('/:id/pizzas', validateId, getIngredientPizzas)
