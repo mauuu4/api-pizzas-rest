@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "API que gestiona pizzas",
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.2.0",
     "express": "5.1.0",
     "joi": "^17.13.3",

@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import { pizzasRouter } from './routes/pizza.routes.js'
 import { ingredientsRouter } from './routes/ingredient.routes.js'
 import { PORT } from './config/config.js'
@@ -6,6 +7,7 @@ import { connectDB } from './config/connection-db.js'
 
 const app = express()
 
+app.use(cors())
 app.use(express.json())
 
 app.use('/pizzas', pizzasRouter)
